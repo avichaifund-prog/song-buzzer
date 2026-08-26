@@ -264,18 +264,18 @@ const CLIENT_ID = "acab126ccec64b2486fa205aade12ea3";
 const SCOPES = "streaming user-read-email user-read-private playlist-read-private playlist-read-collaborative user-modify-playback-state user-read-playback-state";
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 
-/* ============ STORAGE HELPERS (persistent artifact storage, NOT localStorage) ============ */
+/* ============ STORAGE HELPERS (sessionStorage - this app runs as a standalone site) ============ */
 async function storeSet(key, value){
-  try{ await window.storage.set(key, JSON.stringify(value), false); }catch(e){ console.error("storage set failed", e); }
+  try{ sessionStorage.setItem(key, JSON.stringify(value)); }catch(e){ console.error("storage set failed", e); }
 }
 async function storeGet(key){
   try{
-    const r = await window.storage.get(key, false);
-    return r ? JSON.parse(r.value) : null;
+    const raw = sessionStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
   }catch(e){ return null; }
 }
 async function storeDelete(key){
-  try{ await window.storage.delete(key, false); }catch(e){}
+  try{ sessionStorage.removeItem(key); }catch(e){}
 }
 
 /* ============ UI HELPERS ============ */
