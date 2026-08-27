@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מי יודע ראשון?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0b14;
+    --bg2:#141225;
+    --magenta:#ff2e7e;
+    --acid:#d6ff3d;
+    --purple:#6c3ce0;
+    --off:#f6f3ff;
+    --muted:#8b86a8;
+    --card:#171530;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(circle at 50% -10%, #201c3f 0%, var(--bg) 55%);
+    color:var(--off);
+    font-family:'Heebo',sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:24px 16px 60px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:.14em;
+    font-size:12px;
+    color:var(--acid);
+    text-transform:uppercase;
+    direction:ltr;
+    display:inline-block;
+  }
+  h1{
+    font-weight:900;
+    font-size:clamp(28px,7vw,44px);
+    margin:6px 0 4px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{color:var(--muted);font-size:15px;margin:0 0 28px;max-width:520px;text-align:center;line-height:1.6;}
+  .card{
+    background:var(--card);
+    border:1px solid #2a2650;
+    border-radius:18px;
+    padding:22px;
+    width:100%;
+    max-width:480px;
+    margin-bottom:18px;
+    box-shadow:0 12px 40px -12px rgba(0,0,0,.5);
+  }
+  .card h2{font-size:18px;margin:0 0 14px;font-weight:700;}
+  textarea{
+    width:100%;
+    min-height:110px;
+    background:#0f0d24;
+    border:1px solid #2f2a5a;
+    border-radius:12px;
+    color:var(--off);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    padding:12px;
+    resize:vertical;
+    direction:ltr;
+    text-align:left;
+  }
+  textarea::placeholder{color:#524d78;}
+  button{
+    font-family:'Heebo',sans-serif;
+    font-weight:700;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+  }
+  button:active{transform:scale(.97);}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-primary{
+    background:var(--magenta);
+    color:#0b0b14;
+    font-size:16px;
+    padding:14px 20px;
+    width:100%;
+    margin-top:12px;
+    box-shadow:0 8px 24px -8px rgba(255,46,126,.55);
+  }
+  .btn-ghost{
+    background:transparent;
+    color:var(--off);
+    border:1px solid #3a3568;
+    font-size:14px;
+    padding:10px 16px;
+  }
+  .btn-acid{
+    background:var(--acid);
+    color:#0b0b14;
+    font-size:15px;
+    padding:12px 18px;
+  }
+  .playlist-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#0f0d24;
+    border:1px solid #2a2650;
+    border-radius:10px;
+    padding:10px 12px;
+    margin-top:8px;
+    font-size:13px;
+  }
+  .playlist-row .rm{color:var(--magenta);font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;background:none;border:none;font-size:16px;}
+  .status-line{font-size:13px;color:var(--muted);margin-top:10px;min-height:18px;}
+  .hint{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6;}
+  .redirect-box{
+    direction:ltr;
+    text-align:left;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    background:#0f0d24;
+    border:1px dashed var(--acid);
+    border-radius:10px;
+    padding:10px;
+    color:var(--acid);
+    word-break:break-all;
+    margin-top:10px;
+  }
+
+  /* GAME SCREEN */
+  .stage{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+  }
+  .stage.active{display:flex;}
+  .counter{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:13px;margin-bottom:18px;letter-spacing:.08em;}
+  .buzzer-wrap{position:relative;width:min(72vw,300px);height:min(72vw,300px);margin:10px 0 30px;}
+  .ring{
+    position:absolute;inset:0;border-radius:50%;
+    border:2px solid var(--magenta);
+    opacity:0;
+    animation:pulse 2.2s ease-out infinite;
+  }
+  .ring:nth-child(2){animation-delay:.7s;}
+  .ring:nth-child(3){animation-delay:1.4s;}
+  @keyframes pulse{
+    0%{transform:scale(.86);opacity:.55;}
+    100%{transform:scale(1.35);opacity:0;}
+  }
+  .buzzer{
+    position:absolute;inset:0;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ff6ba3, var(--magenta) 60%, #b8125a 100%);
+    border:none;
+    color:#0b0b14;
+    font-weight:900;
+    font-size:clamp(22px,6vw,32px);
+    box-shadow:0 20px 50px -10px rgba(255,46,126,.6), inset 0 -8px 20px rgba(0,0,0,.25);
+    cursor:pointer;
+  }
+  .buzzer:active{transform:scale(.95);}
+  .buzzer:disabled{filter:grayscale(.6);opacity:.5;}
+  .reveal{
+    display:none;
+    width:100%;
+    max-width:420px;
+    background:var(--card);
+    border:1px solid #2a2650;
+    border-radius:18px;
+    padding:20px;
+    text-align:center;
+    margin-bottom:16px;
+  }
+  .reveal.show{display:block;}
+  .reveal img{width:140px;height:140px;border-radius:12px;margin-bottom:14px;box-shadow:0 10px 30px -8px rgba(0,0,0,.6);}
+  .reveal .track-name{font-size:20px;font-weight:900;margin:0 0 4px;}
+  .reveal .track-artist{font-size:14px;color:var(--muted);margin:0 0 4px;}
+  .reveal .track-year{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;
+    background:var(--acid);
+    color:#0b0b14;
+    font-weight:700;
+    font-size:13px;
+    padding:3px 10px;
+    border-radius:20px;
+    margin-top:8px;
+  }
+  .controls{display:flex;gap:10px;width:100%;max-width:420px;}
+  .controls button{flex:1;}
+  .players-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    width:100%;max-width:480px;margin:10px 0 8px;
+  }
+  .player-btn{
+    aspect-ratio:1/1;
+    min-height:130px;
+    border-radius:20px;
+    font-weight:900;font-size:17px;
+    color:#0b0b14;
+    box-shadow:0 12px 30px -8px rgba(0,0,0,.55);
+  }
+  .player-btn:disabled{filter:grayscale(.6);opacity:.4;}
+  .controls-divider{
+    width:100%;max-width:480px;
+    display:flex;align-items:center;gap:12px;
+    color:var(--muted);font-size:11px;
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:.1em;
+    margin:22px 0 14px;
+  }
+  .controls-divider::before,.controls-divider::after{
+    content:'';flex:1;height:1px;background:#2a2650;
+  }
+  .scoreboard{
+    display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+    margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:12px;
+  }
+  .score-chip{background:#0f0d24;border:1px solid #2a2650;border-radius:20px;padding:6px 12px;color:var(--muted);}
+  .countdown-wrap{display:none;flex-direction:column;align-items:center;margin:20px 0;}
+  .countdown-wrap.show{display:flex;}
+  .countdown-num{font-family:'JetBrains Mono',monospace;font-weight:900;font-size:72px;color:var(--acid);line-height:1;}
+  .countdown-label{color:var(--muted);font-size:13px;margin-top:6px;}
+  .judge-controls{display:none;gap:10px;width:100%;max-width:420px;margin-bottom:16px;}
+  .judge-controls.show{display:flex;}
+  .judge-controls button{flex:1;padding:16px 10px;font-size:14px;}
+  .btn-correct{background:var(--acid);color:#0b0b14;}
+  .btn-wrong{background:var(--magenta);color:#0b0b14;}
+  .error-box{
+    background:#2a0f1e;
+    border:1px solid var(--magenta);
+    color:#ffb3cf;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:13px;
+    max-width:480px;
+    margin-bottom:16px;
+    display:none;
+    line-height:1.6;
+  }
+  .error-box.show{display:block;}
+  .logo-dot{width:8px;height:8px;background:var(--acid);border-radius:50%;display:inline-block;margin-left:6px;}
+</style>
+</head>
+<body>
+
+  <span class="eyebrow">SONG BUZZER · POWERED BY SPOTIFY</span>
+  <h1>מי יודע ראשון? 🎵</h1>
+  <p class="subtitle">מערבבים כמה פלייליסטים, משמיעים שיר בלי לגלות מה זה — ומי שלוחץ ראשון על הכפתור מנחש.</p>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- SCREEN 1: CONNECT -->
+  <div class="card" id="screenConnect">
+    <h2>שלב 1 — התחברות לספוטיפיי</h2>
+    <p class="hint" style="margin-top:0;">צריך חשבון ספוטיפיי Premium. בפעם הראשונה תצטרך גם להוסיף את הכתובת הבאה כ-Redirect URI באפליקציה שיצרת ב-Spotify Dashboard:</p>
+    <div class="redirect-box" id="redirectBox">טוען כתובת…</div>
+    <button class="btn-primary" id="connectBtn">התחבר עם ספוטיפיי</button>
+    <button class="btn-ghost" id="testBtn" style="width:100%;margin-top:10px;">בדוק חיבור (לאבחון)</button>
+    <div class="status-line" id="testStatus"></div>
+  </div>
+
+  <!-- SCREEN 2: PLAYLISTS -->
+  <div class="card" id="screenPlaylists" style="display:none;">
+    <h2>שלב 2 — הוספת פלייליסטים</h2>
+    <textarea id="playlistInput" placeholder="הדביקו כאן קישור לפלייליסט מספוטיפיי (share → copy link)&#10;אפשר להוסיף כמה שרוצים, אחד בכל פעם"></textarea>
+    <p class="hint">⚠️ בגלל מדיניות חדשה של ספוטיפיי, אפשר להוסיף רק פלייליסטים <b>שלך</b>, או כאלה שהפכת ל"שיתופיים" (Collaborative) והצטרפת אליהם. פלייליסט של חבר שלא שיתף אותך כך - לא ייטען.</p>
+    <button class="btn-ghost" id="addPlaylistBtn" style="margin-top:10px;width:100%;">+ הוסף פלייליסט</button>
+    <button class="btn-ghost" id="testBtn2" style="margin-top:8px;width:100%;">בדוק חיבור (לאבחון)</button>
+    <div class="status-line" id="testStatus2"></div>
+    <div id="playlistList"></div>
+    <div class="status-line" id="playlistStatus"></div>
+    <p class="hint" style="margin-bottom:4px;">כמה משתתפים משחקים?</p>
+    <input type="number" id="playerCountInput" min="1" max="20" value="2" style="width:100%;padding:12px;border-radius:12px;background:#0f0d24;border:1px solid #2f2a5a;color:var(--off);font-family:'JetBrains Mono',monospace;font-size:16px;text-align:center;">
+    <button class="btn-primary" id="startGameBtn" disabled>ערבבו והתחילו משחק</button>
+    <button class="btn-ghost" id="logoutBtn" style="width:100%;margin-top:14px;font-size:13px;">🔓 התנתק / החלף חשבון ספוטיפיי</button>
+  </div>
+
+  <!-- SCREEN 3: GAME -->
+  <div class="stage" id="screenGame">
+    <div class="counter" id="counterLine">שיר 0 מתוך 0</div>
+    <div class="scoreboard" id="scoreboard"></div>
+
+    <div class="reveal" id="revealCard">
+      <img id="revealImg" src="" alt="">
+      <p class="track-name" id="revealName"></p>
+      <p class="track-artist" id="revealArtist"></p>
+      <span class="track-year" id="revealYear"></span>
+    </div>
+
+    <div class="countdown-wrap" id="countdownWrap">
+      <div class="countdown-num" id="countdownNum">5</div>
+      <div class="countdown-label" id="countdownLabel">מי לחץ/ה? תגידו בקול מה השיר...</div>
+    </div>
+
+    <div class="players-grid" id="playersGrid"></div>
+
+    <div class="judge-controls" id="judgeControls">
+      <button class="btn-correct" id="correctBtn">✅ צדק/ה</button>
+      <button class="btn-wrong" id="wrongBtn">❌ טעה/תה</button>
+    </div>
+
+    <div class="controls-divider">בקרת שיר</div>
+    <div class="controls">
+      <button class="btn-ghost" id="replayBtn">🔁 השמע שוב</button>
+      <button class="btn-acid" id="nextBtn">השיר הבא ⏭</button>
+    </div>
+  </div>
+
+<script>
+/* ============ CONFIG ============ */
+const CLIENT_ID = "acab126ccec64b2486fa205aade12ea3";
+const SCOPES = "streaming user-read-email user-read-private playlist-read-private playlist-read-collaborative user-modify-playback-state user-read-playback-state";
+const REDIRECT_URI = window.location.origin + window.location.pathname;
+
+/* ============ STORAGE HELPERS (localStorage - persists login across sessions) ============ */
+async function storeSet(key, value){
+  try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){ console.error("storage set failed", e); }
+}
+async function storeGet(key){
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+async function storeDelete(key){
+  try{ localStorage.removeItem(key); }catch(e){}
+}
+
+/* ============ UI HELPERS ============ */
+function showError(msg){
+  const box = document.getElementById('errorBox');
+  box.textContent = msg;
+  box.classList.add('show');
+}
+function clearError(){
+  const box = document.getElementById('errorBox');
+  box.classList.remove('show');
+  box.textContent = '';
+}
+
+document.getElementById('redirectBox').textContent = REDIRECT_URI;
+
+/* ============ PKCE HELPERS ============ */
+function randomString(len){
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let out = '';
+  const arr = new Uint8Array(len);
+  crypto.getRandomValues(arr);
+  for(let i=0;i<len;i++) out += chars[arr[i] % chars.length];
+  return out;
+}
+async function sha256base64url(input){
+  const data = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  let str = '';
+  const bytes = new Uint8Array(digest);
+  for(let i=0;i<bytes.length;i++) str += String.fromCharCode(bytes[i]);
+  return btoa(str).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+/* ============ AUTH FLOW ============ */
+async function startAuth(){
+  clearError();
+  const verifier = randomString(64);
+  await storeSet('pkce_verifier', verifier);
+  const challenge = await sha256base64url(verifier);
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    response_type: 'code',
+    redirect_uri: REDIRECT_URI,
+    code_challenge_method: 'S256',
+    code_challenge: challenge,
+    scope: SCOPES
+  });
+  window.location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
+}
+
+async function exchangeCodeForToken(code){
+  const verifier = await storeGet('pkce_verifier');
+  if(!verifier){ showError('אימות נכשל (חסר verifier) — נסה להתחבר שוב.'); return null; }
+  const body = new URLSearchParams({
+    client_id: CLIENT_ID,
+    grant_type: 'authorization_code',
+    code: code,
+    redirect_uri: REDIRECT_URI,
+    code_verifier: verifier
+  });
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    body: body.toString()
+  });
+  if(!res.ok){
+    const t = await res.text();
+    showError('שגיאה בהתחברות לספוטיפיי: ' + t.slice(0,200));
+    return null;
+  }
+  const json = await res.json();
+  const tokenData = {
+    access_token: json.access_token,
+    refresh_token: json.refresh_token,
+    expires_at: Date.now() + (json.expires_in*1000) - 30000
+  };
+  await storeSet('spotify_tokens', tokenData);
+  return tokenData;
+}
+
+async function refreshToken(){
+  const tokens = await storeGet('spotify_tokens');
+  if(!tokens || !tokens.refresh_token) return null;
+  const body = new URLSearchParams({
+    client_id: CLIENT_ID,
+    grant_type: 'refresh_token',
+    refresh_token: tokens.refresh_token
+  });
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    body: body.toString()
+  });
+  if(!res.ok) return null;
+  const json = await res.json();
+  const tokenData = {
+    access_token: json.access_token,
+    refresh_token: json.refresh_token || tokens.refresh_token,
+    expires_at: Date.now() + (json.expires_in*1000) - 30000
+  };
+  await storeSet('spotify_tokens', tokenData);
+  return tokenData;
+}
+
+async function getValidToken(){
+  let tokens = await storeGet('spotify_tokens');
+  if(!tokens) return null;
+  if(Date.now() > tokens.expires_at){
+    tokens = await refreshToken();
+  }
+  return tokens ? tokens.access_token : null;
+}
+
+/* ============ APP STATE ============ */
+let playlists = []; // {id, url}
+let queue = [];      // shuffled track objects
+let currentIndex = -1;
+let player = null;
+let deviceId = null;
+let players = [];    // {name, score}
+let buzzedPlayerIndex = -1;
+let countdownInterval = null;
+let revealed = false;
+function hideMediaSessionInfo(){
+  if('mediaSession' in navigator){
+    try{
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'מי יודע ראשון? 🎵',
+        artist: 'לחצו כשאתם יודעים!',
+        album: '',
+        artwork: []
+      });
+    }catch(e){}
+  }
+}
+const PLAYER_COLORS = [
+  'radial-gradient(circle at 35% 30%, #ff6ba3, var(--magenta) 60%, #b8125a 100%)',
+  'radial-gradient(circle at 35% 30%, #eaffa0, var(--acid) 60%, #9fc720 100%)',
+  'radial-gradient(circle at 35% 30%, #b08bff, var(--purple) 60%, #4526a0 100%)',
+  'radial-gradient(circle at 35% 30%, #ffd27a, #ffab2e 60%, #b06e00 100%)',
+  'radial-gradient(circle at 35% 30%, #7ae0ff, #2eb6ff 60%, #0068a0 100%)',
+  'radial-gradient(circle at 35% 30%, #ff9d7a, #ff5c2e 60%, #a02a00 100%)'
+];
+
+/* ============ PLAYERS ============ */
+function setupPlayers(count){
+  players = [];
+  for(let i=0;i<count;i++){
+    players.push({ name: `שחקן ${i+1}`, score: 0 });
+  }
+}
+
+function renderPlayersGrid(){
+  const grid = document.getElementById('playersGrid');
+  grid.innerHTML = '';
+  players.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'player-btn';
+    btn.textContent = p.name;
+    btn.style.background = PLAYER_COLORS[i % PLAYER_COLORS.length];
+    btn.onclick = () => onPlayerBuzz(i);
+    btn.id = `playerBtn-${i}`;
+    if(i === players.length - 1 && players.length % 2 === 1){
+      btn.style.gridColumn = '1 / -1';
+    }
+    grid.appendChild(btn);
+  });
+}
+
+function renderScoreboard(){
+  const board = document.getElementById('scoreboard');
+  board.innerHTML = '';
+  players.forEach(p => {
+    const chip = document.createElement('span');
+    chip.className = 'score-chip';
+    chip.textContent = `${p.name}: ${p.score}`;
+    board.appendChild(chip);
+  });
+}
+
+function disableAllPlayerButtons(){
+  players.forEach((p,i) => {
+    const btn = document.getElementById(`playerBtn-${i}`);
+    if(btn) btn.disabled = true;
+  });
+}
+function enableAllPlayerButtons(){
+  players.forEach((p,i) => {
+    const btn = document.getElementById(`playerBtn-${i}`);
+    if(btn) btn.disabled = false;
+  });
+}
+
+async function onPlayerBuzz(i){
+  disableAllPlayerButtons();
+  buzzedPlayerIndex = i;
+  await pausePlayback();
+  const wrap = document.getElementById('countdownWrap');
+  const num = document.getElementById('countdownNum');
+  const label = document.getElementById('countdownLabel');
+  label.textContent = `${players[i].name} לחץ/ה — תגידו בקול מה השיר!`;
+  wrap.classList.add('show');
+  let secondsLeft = 5;
+  num.textContent = secondsLeft;
+  countdownInterval = setInterval(() => {
+    secondsLeft--;
+    if(secondsLeft <= 0){
+      clearInterval(countdownInterval);
+      wrap.classList.remove('show');
+      showReveal(queue[currentIndex]);
+      const jc = document.getElementById('judgeControls');
+      document.getElementById('correctBtn').textContent = `✅ ${players[i].name} צדק/ה`;
+      document.getElementById('wrongBtn').textContent = `❌ ${players[i].name} טעה/תה`;
+      jc.classList.add('show');
+    }else{
+      num.textContent = secondsLeft;
+    }
+  }, 1000);
+}
+
+document.getElementById('correctBtn').onclick = () => {
+  if(buzzedPlayerIndex >= 0){ players[buzzedPlayerIndex].score += 1; }
+  renderScoreboard();
+  document.getElementById('judgeControls').classList.remove('show');
+};
+document.getElementById('wrongBtn').onclick = () => {
+  if(buzzedPlayerIndex >= 0){ players[buzzedPlayerIndex].score -= 1; }
+  renderScoreboard();
+  document.getElementById('judgeControls').classList.remove('show');
+};
+
+/* ============ SCREEN SWITCHING ============ */
+function goToPlaylistsScreen(){
+  document.getElementById('screenConnect').style.display = 'none';
+  document.getElementById('screenPlaylists').style.display = 'block';
+}
+function goToGameScreen(){
+  document.getElementById('screenPlaylists').style.display = 'none';
+  document.getElementById('screenGame').classList.add('active');
+}
+
+/* ============ PLAYLIST HANDLING ============ */
+function extractPlaylistId(input){
+  input = input.trim();
+  let m = input.match(/playlist\/([a-zA-Z0-9]+)/);
+  if(m) return m[1];
+  m = input.match(/spotify:playlist:([a-zA-Z0-9]+)/);
+  if(m) return m[1];
+  if(/^[a-zA-Z0-9]{10,}$/.test(input)) return input;
+  return null;
+}
+
+function renderPlaylistList(){
+  const wrap = document.getElementById('playlistList');
+  wrap.innerHTML = '';
+  playlists.forEach((p, idx) => {
+    const row = document.createElement('div');
+    row.className = 'playlist-row';
+    row.innerHTML = `<span>🎧 ${p.id}</span>`;
+    const rm = document.createElement('button');
+    rm.className = 'rm';
+    rm.textContent = '✕';
+    rm.onclick = () => { playlists.splice(idx,1); renderPlaylistList(); };
+    row.appendChild(rm);
+    wrap.appendChild(row);
+  });
+  document.getElementById('startGameBtn').disabled = playlists.length === 0;
+}
+
+document.getElementById('addPlaylistBtn').onclick = () => {
+  const val = document.getElementById('playlistInput').value;
+  const id = extractPlaylistId(val);
+  if(!id){
+    showError('לא הצלחתי לזהות קישור לפלייליסט. ודא שהדבקת קישור תקין מספוטיפיי.');
+    return;
+  }
+  clearError();
+  if(!playlists.find(p => p.id === id)){
+    playlists.push({id});
+    renderPlaylistList();
+  }
+  document.getElementById('playlistInput').value = '';
+};
+
+let lastFetchHadError = false;
+async function fetchAllPlaylistTracks(){
+  const token = await getValidToken();
+  let allTracks = [];
+  lastFetchHadError = false;
+  const status = document.getElementById('playlistStatus');
+  for(const pl of playlists){
+    status.textContent = `טוען פלייליסט ${pl.id}…`;
+    let url = `https://api.spotify.com/v1/playlists/${pl.id}/items?fields=items(is_local,item(uri,name,artists(name),album(images,release_date))),next&limit=50`;
+    let guard = 0;
+    while(url && guard < 10){
+      guard++;
+      const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+      if(!res.ok){
+        let detail = '';
+        try{ const j = await res.json(); detail = (j.error && j.error.message) ? j.error.message : JSON.stringify(j); }catch(e){ detail = await res.text(); }
+        showError(`שגיאה בטעינת פלייליסט ${pl.id} (קוד ${res.status}): ${detail}`);
+        lastFetchHadError = true;
+        break;
+      }
+      const json = await res.json();
+      (json.items||[]).forEach(it => {
+        const t = it.item || it.track;
+        if(t && t.uri && t.uri.startsWith('spotify:track:')){
+          allTracks.push({
+            uri: t.uri,
+            name: t.name,
+            artists: (t.artists||[]).map(a=>a.name).join(', '),
+            image: t.album && t.album.images && t.album.images[0] ? t.album.images[0].url : '',
+            year: t.album && t.album.release_date ? t.album.release_date.slice(0,4) : ''
+          });
+        }
+      });
+      url = json.next;
+    }
+  }
+  // dedupe by uri
+  const seen = new Set();
+  allTracks = allTracks.filter(t => { if(seen.has(t.uri)) return false; seen.add(t.uri); return true; });
+  status.textContent = `נטענו ${allTracks.length} שירים.`;
+  return allTracks;
+}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+document.getElementById('startGameBtn').onclick = async () => {
+  clearError();
+  document.getElementById('startGameBtn').disabled = true;
+  document.getElementById('startGameBtn').textContent = 'טוען שירים…';
+  try{
+    const tracks = await fetchAllPlaylistTracks();
+    if(tracks.length === 0){
+      if(!lastFetchHadError){
+        showError('לא נמצאו שירים בפלייליסטים שנבחרו.');
+      }
+      document.getElementById('startGameBtn').disabled = false;
+      document.getElementById('startGameBtn').textContent = 'ערבבו והתחילו משחק';
+      return;
+    }
+    queue = shuffle(tracks);
+    currentIndex = -1;
+    const count = Math.max(1, parseInt(document.getElementById('playerCountInput').value) || 1);
+    setupPlayers(count);
+    renderPlayersGrid();
+    renderScoreboard();
+    goToGameScreen();
+    await initPlayerIfNeeded();
+    playNext();
+  }catch(e){
+    showError('משהו השתבש בטעינת השירים: ' + e.message);
+    document.getElementById('startGameBtn').disabled = false;
+    document.getElementById('startGameBtn').textContent = 'ערבבו והתחילו משחק';
+  }
+};
+
+/* ============ SPOTIFY WEB PLAYBACK SDK ============ */
+function loadSdkScript(){
+  return new Promise((resolve) => {
+    if(window.Spotify){ resolve(); return; }
+    const script = document.createElement('script');
+    script.src = 'https://sdk.scdn.co/spotify-player.js';
+    document.head.appendChild(script);
+    window.onSpotifyWebPlaybackSDKReady = () => resolve();
+  });
+}
+
+async function initPlayerIfNeeded(){
+  if(player) return;
+  await loadSdkScript();
+  player = new Spotify.Player({
+    name: 'משחק מי יודע ראשון',
+    getOAuthToken: async (cb) => { const t = await getValidToken(); cb(t); },
+    volume: 0.9
+  });
+  player.addListener('ready', ({device_id}) => { deviceId = device_id; });
+  player.addListener('initialization_error', ({message}) => showError('שגיאת אתחול נגן: '+message));
+  player.addListener('authentication_error', ({message}) => showError('שגיאת הזדהות: '+message));
+  player.addListener('account_error', ({message}) => showError('נדרש חשבון Spotify Premium כדי לנגן: '+message));
+  player.addListener('player_state_changed', () => {
+    if(!revealed){ hideMediaSessionInfo(); }
+  });
+  await player.connect();
+  // give the SDK a moment to report device_id
+  await new Promise(r => setTimeout(r, 1200));
+}
+
+async function playTrackUri(uri){
+  const token = await getValidToken();
+  if(!deviceId){ showError('הנגן עדיין לא מוכן, נסו שוב בעוד רגע.'); return; }
+  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+    method: 'PUT',
+    headers: { Authorization: 'Bearer '+token, 'Content-Type':'application/json' },
+    body: JSON.stringify({ uris: [uri] })
+  });
+}
+async function pausePlayback(){
+  const token = await getValidToken();
+  if(!deviceId) return;
+  await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, {
+    method: 'PUT', headers: { Authorization: 'Bearer '+token }
+  });
+}
+
+/* ============ GAME FLOW ============ */
+function resetRoundUI(){
+  document.getElementById('revealCard').classList.remove('show');
+  document.getElementById('countdownWrap').classList.remove('show');
+  document.getElementById('judgeControls').classList.remove('show');
+  if(countdownInterval){ clearInterval(countdownInterval); countdownInterval = null; }
+  buzzedPlayerIndex = -1;
+  revealed = false;
+  hideMediaSessionInfo();
+  enableAllPlayerButtons();
+}
+function showReveal(track){
+  revealed = true;
+  document.getElementById('revealImg').src = track.image || '';
+  document.getElementById('revealName').textContent = track.name;
+  document.getElementById('revealArtist').textContent = track.artists;
+  document.getElementById('revealYear').textContent = track.year || '';
+  document.getElementById('revealCard').classList.add('show');
+}
+
+async function playNext(){
+  clearError();
+  resetRoundUI();
+  currentIndex++;
+  document.getElementById('counterLine').textContent = `שיר ${currentIndex+1} מתוך ${queue.length}`;
+  if(currentIndex >= queue.length){
+    document.getElementById('counterLine').textContent = 'זהו, נגמרו השירים! 🎉';
+    disableAllPlayerButtons();
+    return;
+  }
+  const track = queue[currentIndex];
+  await playTrackUri(track.uri);
+}
+
+document.getElementById('replayBtn').onclick = async () => {
+  if(currentIndex >= 0 && currentIndex < queue.length){
+    resetRoundUI();
+    await playTrackUri(queue[currentIndex].uri);
+  }
+};
+
+document.getElementById('nextBtn').onclick = () => { playNext(); };
+
+/* ============ CONNECT BUTTON ============ */
+document.getElementById('connectBtn').onclick = startAuth;
+
+/* ============ LOGOUT / SWITCH ACCOUNT ============ */
+document.getElementById('logoutBtn').onclick = async () => {
+  await storeDelete('spotify_tokens');
+  await storeDelete('pkce_verifier');
+  document.getElementById('screenPlaylists').style.display = 'none';
+  document.getElementById('screenConnect').style.display = 'block';
+  playlists = [];
+  document.getElementById('playlistList').innerHTML = '';
+};
+
+/* ============ DIAGNOSTIC TEST ============ */
+async function runConnectionTest(outEl){
+  outEl.textContent = 'בודק…';
+  try{
+    const token = await getValidToken();
+    if(!token){ outEl.textContent = 'אין טוקן שמור - צריך להתחבר קודם.'; return; }
+    const res = await fetch('https://api.spotify.com/v1/me', { headers: { Authorization: 'Bearer ' + token } });
+    const text = await res.text();
+    outEl.textContent = `סטטוס: ${res.status} | תגובה: ${text.slice(0,300)}`;
+  }catch(e){
+    outEl.textContent = 'שגיאה בבדיקה: ' + e.message;
+  }
+}
+document.getElementById('testBtn').onclick = () => runConnectionTest(document.getElementById('testStatus'));
+document.getElementById('testBtn2').onclick = () => runConnectionTest(document.getElementById('testStatus2'));
+
+/* ============ BOOTSTRAP ============ */
+(async function bootstrap(){
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const errParam = params.get('error');
+  if(errParam){
+    showError('ההתחברות בוטלה או נכשלה: ' + errParam);
+  }
+  if(code){
+    window.history.replaceState({}, document.title, window.location.pathname);
+    const tokens = await exchangeCodeForToken(code);
+    if(tokens){ goToPlaylistsScreen(); return; }
+  }
+  const existing = await getValidToken();
+  if(existing){ goToPlaylistsScreen(); }
+})();
+</script>
+</body>
+</html>
